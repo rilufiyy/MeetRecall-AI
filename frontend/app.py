@@ -78,16 +78,21 @@ if selected == "Upload":
     st.title("Upload Meeting Video")
     st.caption("Powered by AssemblyAI & OpenAI")
 
+    # Model selection
+    model_options = [
+        "Wav2Vec2-Large (ONNX Optimized)",
+        "Wav2Vec2-Large",
+        "Qwen/Qwen3-ASR-1.7B",
+        "AssemblyAI (Universal-3-Pro)",
+        "AssemblyAI (Universal-2)"
+    ]
     transcription_model = st.selectbox(
-        "Choose Transcription Model",
-        [
-            "AssemblyAI (Universal-3-Pro)",
-            "AssemblyAI (Universal-2)",
-            "OpenAI (Whisper / GPT-4o Transcribe)"
-        ],
-        key="transcription_model_select"
+        "Select Transcription Model",
+        model_options,
+        index=0,
+        help="Choose the AI model for transcription. ONNX models are optimized for CPU performance."
     )
-    st.caption(f"Selected Provider: {transcription_model}")
+    st.caption(f"Selected Model: {transcription_model}")
 
     uploaded_file = st.file_uploader(
         "Upload meeting recording (Audio/Video)",
@@ -108,7 +113,7 @@ if selected == "Upload":
                 st.error(result.get("error", "Upload failed"))
             else:
                 st.session_state.current_meeting_id = result["meeting_id"]
-                st.session_state.meeting_data = None  # Reset meeting data
+                st.session_state.meeting_data = None  
                 st.success("Upload successful. Redirecting to analysis page...")
                 time.sleep(1)
                 st.switch_page("pages/1_Meeting_Analysis.py") if "pages" in dir(st) else st.rerun()
