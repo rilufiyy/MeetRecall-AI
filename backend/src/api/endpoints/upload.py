@@ -19,10 +19,6 @@ async def upload_meeting(
     """
     Uploads a meeting recording and triggers the processing pipeline.
     Returns immediately with a meeting ID.
-
-    Args:
-        provider: Transcription provider (assemblyai, openai)
-        model: Specific model for AssemblyAI (universal-3-pro, universal-2)
     """
     meeting_id = str(uuid.uuid4())
     filename = file.filename
@@ -37,6 +33,8 @@ async def upload_meeting(
         raise HTTPException(status_code=500, detail="File upload failed")
 
     # Trigger pipeline with selected provider and model
+    logger.info(f"UPLOAD ENDPOINT RECEIVED: provider='{provider}', model='{model}'")
+    print(f"DEBUG_PRINT: UPLOAD ENDPOINT RECEIVED: provider='{provider}', model='{model}'", flush=True)
     background_tasks.add_task(pipeline_service.process_meeting, temp_path, filename, meeting_id, provider, model)
 
     return {
