@@ -22,7 +22,7 @@ class StorageService:
         try:
             # Write file in chunks to avoid memory issues
             async with aiofiles.open(file_path, 'wb') as out_file:
-                while content := await file.read(1024 * 1024):  # 1MB chunks
+                while content := await file.read(1024 * 1024):  
                     await out_file.write(content)
         except Exception as e:
             logger.error(f"Failed to save upload: {e}")
@@ -47,16 +47,15 @@ class StorageService:
                  raise ValueError("Input audio file is missing or too small.")
             return input_path
 
-        # Strict conversion: Mono (1ch), 16000Hz
         cmd = [
             'ffmpeg',
             '-i', str(input_path),
             '-vn',                
             '-acodec', 'libmp3lame',
             '-ac', '1',          
-            '-ar', '16000',       # 16kHz
+            '-ar', '16000',       
             '-q:a', '2',
-            '-y',                 # Overwrite
+            '-y',                 
             str(output_path)
         ]
         
@@ -77,7 +76,7 @@ class StorageService:
             if not output_path.exists():
                 raise FileNotFoundError(f"Audio extraction failed to create file: {output_path}")
             
-            if output_path.stat().st_size < 1024: # < 1KB is suspicious
+            if output_path.stat().st_size < 1024: 
                  logger.error(f"Extracted audio too small: {output_path.stat().st_size} bytes")
                  raise ValueError("Extracted audio file is too small/corrupt.")
 
@@ -93,7 +92,6 @@ class StorageService:
         try:
             db = SessionLocal()
             
-            # Check if exists
             existing_meeting = db.query(Meeting).filter(Meeting.id == meeting_data.id).first()
             
             # Prepare Analytics Data
@@ -129,7 +127,9 @@ class StorageService:
                 existing_meeting.transcript_segments = segments_json
                 existing_meeting.status = meeting_data.metadata.status
                 existing_meeting.duration = meeting_data.metadata.duration
+                existing_meeting.duration = meeting_data.metadata.duration
                 existing_meeting.provider = meeting_data.metadata.provider
+                existing_meeting.model_name = meeting_data.metadata.model_name
                 # Analytics is handled via relationship/foreign key logic above if added to session
             else:
                 new_meeting = Meeting(
@@ -139,11 +139,11 @@ class StorageService:
                     upload_timestamp=meeting_data.metadata.upload_timestamp,
                     status=meeting_data.metadata.status,
                     provider=meeting_data.metadata.provider,
+                    model_name=meeting_data.metadata.model_name,
                     transcript_text=meeting_data.transcript_text,
                     transcript_segments=segments_json
                 )
                 db.add(new_meeting)
-                # If analytics existed (unlikely for new meeting but possible safely), it's linked via meeting_id
             
             db.commit()
             db.close()
@@ -169,10 +169,11 @@ class StorageService:
                 duration=orm_meeting.duration,
                 upload_timestamp=orm_meeting.upload_timestamp,
                 status=status,
-                provider=orm_meeting.provider
+                provider=orm_meeting.provider,
+                model_name=orm_meeting.model_name
             )
             
-            # CRITICAL GUARD: API Contract
+            # API Contract
             if status != "COMPLETED":
                 return ProcessedMeeting(
                     id=orm_meeting.id,
@@ -210,7 +211,6 @@ class StorageService:
                         speaker_percentage={}
                     )
 
-            # Reconstruct Segments (Only if COMPLETED - flow reaches here)
             segments = []
             if orm_meeting.transcript_segments:
                 try:
