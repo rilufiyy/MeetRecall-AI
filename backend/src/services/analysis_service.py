@@ -41,13 +41,11 @@ class AnalysisService:
         """
         
         # Prepare context with timestamps
-        # We'll truncate if too long, but GPT-4o has 128k context so should be fine for most meetings.
         transcript_context = ""
-        for seg in segments[:1000]: # Safety limit
+        for seg in segments[:1000]: 
             transcript_context += f"[{seg.start_time:.1f}s] {seg.speaker}: {seg.text}\n"
             
         if not transcript_context:
-             # Fallback if no segments (shouldn't happen with Assembly)
              transcript_context = transcript_text[:50000]
 
         try:
@@ -73,7 +71,6 @@ class AnalysisService:
             
         except Exception as e:
             logger.error(f"Analysis failed: {e}")
-            # Return empty/default
             return AnalyticsResponse(
                 summary="Analysis failed.",
                 action_items=[],
