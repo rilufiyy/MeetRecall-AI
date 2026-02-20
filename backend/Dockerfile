@@ -6,11 +6,13 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     build-essential \
     curl \
+    libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt .
+COPY download_models.py .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
