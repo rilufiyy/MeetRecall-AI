@@ -9,13 +9,12 @@ async def get_analysis(meeting_id: str):
     try:
         meeting = await storage_service.load_meeting(meeting_id)
         
-        # Guard: Strict API Contract
+        # Strict API Contract
         status = meeting.metadata.status
         
         if status == "FAILED":
             # Requirement: Return 200 with failure info (or 500 if strict, but user asked for 200 valid response)
-            # We return the meeting object, which has status=FAILED. 
-            # The frontend should handle this.
+
             return meeting
             
         if status != "COMPLETED":
