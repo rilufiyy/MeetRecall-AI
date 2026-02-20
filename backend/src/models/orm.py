@@ -20,6 +20,7 @@ class Meeting(Base):
     # Metadata about processing
     processing_mode = Column(String, default="single")
     provider = Column(String, nullable=True)
+    model_name = Column(String, nullable=True)
 
     # Relationships
     analytics = relationship("Analytics", back_populates="meeting", uselist=False, cascade="all, delete-orphan")
@@ -33,11 +34,11 @@ class Analytics(Base):
     
     # Insights
     summary = Column(Text, nullable=True)
-    action_items = Column(JSON, nullable=True) # List of {text, owner, due_date}
-    key_questions = Column(JSON, nullable=True) # List of strings
-    topics = Column(JSON, nullable=True) # List of {topic, start_time}
-    keywords = Column(JSON, nullable=True) # List of strings
-    speaker_percentage = Column(JSON, nullable=True) # {speaker: percentage}
+    action_items = Column(JSON, nullable=True) 
+    key_questions = Column(JSON, nullable=True) 
+    topics = Column(JSON, nullable=True) 
+    keywords = Column(JSON, nullable=True) 
+    speaker_percentage = Column(JSON, nullable=True) 
     
     meeting = relationship("Meeting", back_populates="analytics")
 
@@ -50,7 +51,6 @@ class TranscriptChunk(Base):
     chunk_index = Column(Integer, nullable=False)
     text = Column(Text, nullable=False)
     
-    # Vector embedding (768 dimensions for OpenAI text-embedding-3-small)
     embedding = Column(Vector(768))
 
     meeting = relationship("Meeting", back_populates="chunks")
