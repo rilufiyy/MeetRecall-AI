@@ -11,9 +11,8 @@ class APIClient:
         Returns: { 'meeting_id': '...', 'status': 'processing' }
         """
         url = f"{self.base_url}/upload"
-        # Determine MIME type based on extension
         filename = file_obj.name
-        mime_type = "video/mp4" # Default fallback
+        mime_type = "video/mp4" 
         if filename.lower().endswith(".mp3"):
             mime_type = "audio/mpeg"
         elif filename.lower().endswith(".wav"):
@@ -23,13 +22,21 @@ class APIClient:
 
         files = {"file": (filename, file_obj, mime_type)}
 
-        # Map friendly name to backend provider and model
         provider = "assemblyai"
-        model = "universal-3-pro"  # Default
+        model = "universal-3-pro"  
 
-        if "OpenAI" in transcription_model:
-            provider = "openai"
-            model = "whisper-1"
+        if transcription_model == "local_whisper":
+            provider = "local_whisper"
+            model = "whisper-small"
+        elif transcription_model == "whisper_diarization":
+            provider = "whisper_diarization"
+            model = "whisper-small"
+        elif "Hugging Face (Whisper-Small CPU)" in transcription_model:
+            provider = "local_whisper"
+            model = "whisper-small"
+        elif "Hugging Face (Whisper-Small + Pyannote)" in transcription_model:
+            provider = "whisper_diarization"
+            model = "whisper-small"
         elif "Universal-2" in transcription_model:
             provider = "assemblyai"
             model = "universal-2"
