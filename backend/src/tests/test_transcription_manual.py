@@ -94,18 +94,18 @@ async def test_orchestrator():
     dummy_path = Path("dummy.wav")
     
     # Test Single Mode
-    print("\n--- Single Mode (OpenAI) ---")
+    print("\nSingle Mode (OpenAI)")
     res_openai = await orchestrator.transcribe(dummy_path, "openai")
     print(f"Result: {res_openai.transcript_text if res_openai else 'None'}")
     assert res_openai.transcript_text == "Mock OpenAI Transcript"
 
-    print("\n--- Single Mode (AssemblyAI) ---")
+    print("\nSingle Mode (AssemblyAI)")
     res_assembly = await orchestrator.transcribe(dummy_path, "assemblyai")
     print(f"Result: {res_assembly.transcript_text if res_assembly else 'None'}")
     assert res_assembly.transcript_text == "Mock AssemblyAI Transcript"
 
     # Test Dual Mode
-    print("\n--- Dual Mode ---")
+    print("\nDual Mode")
     results = await orchestrator.transcribe_dual(dummy_path)
     print(f"OpenAI: {results['openai'].transcript_text}")
     print(f"AssemblyAI: {results['assemblyai'].transcript_text}")
