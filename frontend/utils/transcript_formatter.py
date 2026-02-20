@@ -27,14 +27,14 @@ def extract_speaker_names(transcript_text: str) -> Dict[str, str]:
     seen = set()
     for name in names_found:
         name = name.strip()
-        if name and name not in seen and len(name.split()) <= 2:  # Max 2 words for names
+        if name and name not in seen and len(name.split()) <= 2:  
             seen.add(name)
             unique_names.append(name)
 
     # Map to speaker labels (limited to first 10 unique names found)
     for i, name in enumerate(unique_names[:10], start=1):
-        speaker_mapping[f"Speaker {chr(64 + i)}"] = name  # Speaker A, B, C, etc.
-        speaker_mapping[f"Speaker {i}"] = name  # Speaker 1, 2, 3, etc.
+        speaker_mapping[f"Speaker {chr(64 + i)}"] = name  
+        speaker_mapping[f"Speaker {i}"] = name  
 
     return speaker_mapping
 
@@ -71,33 +71,33 @@ def format_transcript_as_dialog(segments: List[Dict], speaker_mapping: Dict[str,
             continue
 
         # Get actual name if available, otherwise use generic label
-        display_speaker = speaker_mapping.get(speaker, speaker)
+        display_speaker = segment.get("display_speaker")
+        if not display_speaker:
+            display_speaker = speaker_mapping.get(speaker, speaker)
 
         # If speaker changes, flush previous speaker's text
         if current_speaker != display_speaker:
             if current_speaker and current_text_parts:
                 combined_text = " ".join(current_text_parts)
                 timestamp = format_timestamp(current_start)
-                formatted_lines.append(f"[{timestamp}] {current_speaker}:\n{combined_text}\n")
+                formatted_lines.append(f"[{timestamp}] {current_speaker}:\n{combined_text}")
 
             current_speaker = display_speaker
             current_text_parts = [text]
             current_start = start_time
         else:
-            # Same speaker, accumulate text
             current_text_parts.append(text)
 
     # Flush last speaker's text
     if current_speaker and current_text_parts:
         combined_text = " ".join(current_text_parts)
         timestamp = format_timestamp(current_start)
-        formatted_lines.append(f"[{timestamp}] {current_speaker}:\n{combined_text}\n")
+        formatted_lines.append(f"[{timestamp}] {current_speaker}:\n{combined_text}")
 
-    return "\n".join(formatted_lines)
+    return "\n\n".join(formatted_lines)
 
 
 def format_timestamp(seconds: float) -> str:
-    """Convert seconds to MM:SS format"""
     minutes = int(seconds // 60)
     secs = int(seconds % 60)
     return f"{minutes:02d}:{secs:02d}"
@@ -129,7 +129,7 @@ def assign_user_labels(segments: List[Dict], speaker_mapping: Dict[str, str] = N
 
     for speaker in sorted(speakers_seen):
         if speaker not in final_mapping and speaker != "Unknown":
-            final_mapping[speaker] = f"User_{user_counter}"
+            final_mapping[speaker] = f"Speaker_{user_counter:02d}"
             user_counter += 1
 
     # Update segments with final mapping
