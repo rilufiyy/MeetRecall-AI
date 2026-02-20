@@ -21,10 +21,6 @@ class PipelineService:
         3. Analyze (OpenAI - Summary, Action Items, Chapters, etc.)
         4. RAG Indexing (OpenAI Embeddings)
         5. Save all results
-
-        Args:
-            provider: Transcription provider (assemblyai, openai)
-            model: Specific model for AssemblyAI (universal-3-pro, universal-2)
         """
 
         # Initial metadata save
@@ -40,22 +36,22 @@ class PipelineService:
             id=meeting_id,
             metadata=metadata
         )
-        await storage_service.save_meeting(process_data) # Save initial state
+        await storage_service.save_meeting(process_data) 
         
         try:
-            # 1. Audio Extraction
+            # Audio Extraction
             if video_path.suffix.lower() in ['.mp4', '.mov', '.avi', '.mkv', '.webm']:
                  audio_path = await storage_service.extract_audio(video_path)
             else:
                  audio_path = video_path
 
-            # Guard: Validate Audio before sending to API
+            # Validate Audio before sending to API
             if not audio_path.exists():
                 raise FileNotFoundError(f"Audio file missing after extraction: {audio_path}")
             if audio_path.stat().st_size < 1024:
                 raise ValueError(f"Audio file too small ({audio_path.stat().st_size} bytes). Extraction likely failed.")
             
-            # 2. Transcription (Variable Provider)
+            # Transcription (Variable Provider)
             logger.info(f"Starting transcription for {meeting_id} using {provider} with model {model}")
             transcription_result = await transcription_service.transcribe(audio_path, provider, model)
             
@@ -66,42 +62,30 @@ class PipelineService:
             
             # Update duration from transcript
             process_data.metadata.duration = transcription_result.duration
+            process_data.metadata.model_name = transcription_result.model_name
             
-            # 3. Analysis (OpenAI)
+            # Analysis (OpenAI)
             logger.info(f"Starting analysis for {meeting_id}")
             analytics_result = await analysis_service.analyze_meeting(
                 process_data.transcript_text, 
                 process_data.transcript_segments
             )
             process_data.analytics = analytics_result
-            # Intermediate status matches logic, but we can iterate if needed. 
-            # Req said: UPLOADED -> PROCESSING -> COMPLETED. 
-            # Let's mark as PROCESSING for the whole duration or specific stages?
-            # User accepted: UPLOADED -> PROCESSING -> TRANSCRIBED -> COMPLETED
             
-            # We already set TRANSCRIBED earlier. Now we have analysis, but RAG is next.
-            # Let's keep internal state updates for debugging, but final is COMPLETED.
-            
-            # 4. RAG Indexing (Background)
+            # RAG Indexing (Background)
             logger.info(f"Starting RAG indexing for {meeting_id}")
-            # Index the full text
             rag_service.index_meeting(meeting_id, process_data.transcript_text)
 
-            # 5. Final State
+            # Final State
             process_data.metadata.status = "COMPLETED"
             await storage_service.save_meeting(process_data)
             
             logger.info(f"Processing complete for meeting {meeting_id}")
             
-            # Cleanup
-            # if audio_path.exists():
-            #     audio_path.unlink()
-            
         except Exception as e:
             logger.error(f"Pipeline failed for meeting {meeting_id}: {e}")
             process_data.metadata.status = "FAILED"
             await storage_service.save_meeting(process_data)
-            # Log full traceback via logger if possible, but e is sufficient for now
             raise e
             
         return meeting_id
