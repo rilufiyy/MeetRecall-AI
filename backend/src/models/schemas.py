@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict
 from datetime import datetime
 
-# --- Shared Models ---
+# Shared Models
 class SpeakerSegment(BaseModel):
     start_time: float
     end_time: float
@@ -18,7 +18,7 @@ class Topic(BaseModel):
     name: str
     timestamp: Optional[float] = 0.0
 
-# --- Response Models ---
+# Response Models
 
 class AnalyticsResponse(BaseModel):
     summary: Optional[str] = "No summary available."
@@ -34,12 +34,13 @@ class MeetingMetadata(BaseModel):
     upload_timestamp: datetime
     status: str
     provider: Optional[str] = None
+    model_name: Optional[str] = None
 
 class MeetingResponse(BaseModel):
     id: str
     metadata: MeetingMetadata
-    transcript_text: Optional[str] = None # Renamed from transcript
-    transcript_segments: Optional[List[SpeakerSegment]] = None # Renamed from segments
+    transcript_text: Optional[str] = None 
+    transcript_segments: Optional[List[SpeakerSegment]] = None 
     analytics: Optional[AnalyticsResponse] = None
 
     class Config:
@@ -53,7 +54,7 @@ class TranscriptionResult(BaseModel):
     duration: float
     created_at: datetime = datetime.now()
 
-# --- Internal Processing Models ---
+# Internal Processing Models
 class ProcessedMeeting(BaseModel):
     id: str
     metadata: MeetingMetadata
