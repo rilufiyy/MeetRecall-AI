@@ -12,7 +12,6 @@ logger = setup_logger(__name__)
 class RAGService:
     def __init__(self):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        # OpenAI "text-embedding-3-small" supports dimensions parameter.
         self.embedding_model = "text-embedding-3-small"
         self.embedding_dim = 768 
         self.chat_model = "gpt-4o" 
@@ -35,7 +34,6 @@ class RAGService:
             )
 
             for i, chunk_text in enumerate(chunks_data):
-                # Generate Embedding
                 embedding = self._get_embedding(chunk_text)
                 
                 # Save to DB
@@ -66,7 +64,6 @@ class RAGService:
             query_embedding = self._get_embedding(query)
             
             # Vector Search (using l2_distance from pgvector)
-            # We want the chunks with the smallest distance
             results = db.scalars(
                 select(TranscriptChunk)
                 .filter(TranscriptChunk.meeting_id == meeting_id)
