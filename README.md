@@ -22,9 +22,16 @@ and enable structured meeting analysis.
 ![Meeting Analysis Process](images/meeting_analysis_process.png)
 
 ### Meeting Analysis
+#### Summary Meeting
 ![Summary](images/summary_result.png)
+
+#### Action Items
 ![Action Items](images/action_items.png)
+
+#### Topics & Keywords
 ![Keywords](images/topic&keywords.png)
+
+#### Transcription Result
 ![Transcription](images/transcription.png)
 
 ### Speaker Diarization Output
