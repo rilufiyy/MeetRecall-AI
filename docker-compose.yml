@@ -23,7 +23,9 @@ services:
       - "8001:8001"
     volumes:
       - ./backend/uploads:/app/uploads
+      - ./backend/uploads:/app/uploads
       - ./backend/.env:/app/.env
+      - ./backend/hf_cache:/root/.cache/huggingface
     env_file:
       - ./backend/.env
     environment:
@@ -36,13 +38,21 @@ services:
       db:
         condition: service_started
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8001/health || exit 1" ]
+      test: [ "CMD-SHELL", "curl -f http://127.0.0.1:8001/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 40s
     restart: unless-stopped
     networks:
       - meetrecall-net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   frontend:
     build: ./frontend
