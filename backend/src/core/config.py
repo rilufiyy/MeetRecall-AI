@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     
     # API Keys
     OPENAI_API_KEY: str = ""
-    ASSEMBLY_API_KEY: str = "" # Optional, if using AssemblyAI
+    ASSEMBLY_API_KEY: str = "" 
+    HUGGINGFACE_TOKEN: str = "" 
 
     # Database (Postgres)
     DB_HOST: str = "localhost"
@@ -33,7 +34,6 @@ class Settings(BaseSettings):
         "extra": "ignore"
     }
 
-# Create directories if they don't exist
 def setup_directories(settings: Settings):
     settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     settings.STORAGE_DIR.mkdir(parents=True, exist_ok=True)
