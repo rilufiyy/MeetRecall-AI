@@ -8,7 +8,7 @@ from utils.transcript_formatter import (
     assign_user_labels
 )
 
-# PAGE CONFIG
+# Page Config
 st.set_page_config(
     page_title="MeetRecall AI",
     layout="wide",
@@ -53,7 +53,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# SESSION STATE INIT
+# Session State Init
 if "current_meeting_id" not in st.session_state:
     st.session_state.current_meeting_id = ""
 
@@ -63,7 +63,7 @@ if "meeting_data" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# SIDEBAR NAVIGATION
+# Sidebar Navigation
 with st.sidebar:
     selected = option_menu(
         "MeetRecall AI",
@@ -73,26 +73,21 @@ with st.sidebar:
         default_index=0,
     )
 
-# UPLOAD PAGE
+# Upload Page
 if selected == "Upload":
     st.title("Upload Meeting Video")
     st.caption("Powered by AssemblyAI & OpenAI")
 
-    # Model selection
-    model_options = [
-        "Wav2Vec2-Large (ONNX Optimized)",
-        "Wav2Vec2-Large",
-        "Qwen/Qwen3-ASR-1.7B",
-        "AssemblyAI (Universal-3-Pro)",
-        "AssemblyAI (Universal-2)"
-    ]
     transcription_model = st.selectbox(
-        "Select Transcription Model",
-        model_options,
-        index=0,
-        help="Choose the AI model for transcription. ONNX models are optimized for CPU performance."
+        "Choose Transcription Model",
+        [
+            "Hugging Face (Whisper-Small CPU)",
+            "Hugging Face (Whisper-Small + Pyannote)",
+            "AssemblyAI (Universal-3-Pro)"
+        ],
+        key="transcription_model_select"
     )
-    st.caption(f"Selected Model: {transcription_model}")
+    st.caption(f"Selected Provider: {transcription_model}")
 
     uploaded_file = st.file_uploader(
         "Upload meeting recording (Audio/Video)",
@@ -103,10 +98,19 @@ if selected == "Upload":
         if not uploaded_file:
             st.error("Please upload a file.")
         else:
-            with st.spinner("Uploading file..."):
+            # Map selection to backend keys
+            provider_map = {
+                "Hugging Face (Whisper-Small CPU)": {"provider": "local_whisper", "model": "whisper-small"},
+                "Hugging Face (Whisper-Small + Pyannote)": {"provider": "whisper_diarization", "model": "whisper-small"},
+                "AssemblyAI (Universal-3-Pro)": {"provider": "assemblyai", "model": "universal-3-pro"}
+            }
+            
+            selected_config = provider_map.get(transcription_model)
+            
+            with st.spinner(f"Uploading file for {selected_config['provider']}..."):
                 result = api_client.upload_video(
                     uploaded_file,
-                    transcription_model=transcription_model
+                    transcription_model=selected_config["provider"], 
                 )
 
             if not result or "error" in result:
@@ -118,7 +122,7 @@ if selected == "Upload":
                 time.sleep(1)
                 st.switch_page("pages/1_Meeting_Analysis.py") if "pages" in dir(st) else st.rerun()
 
-# MEETING ANALYSIS PAGE
+# Meeting Analysis Page
 elif selected == "Meeting Analysis":
     st.title("Meeting Analysis")
 
@@ -129,17 +133,15 @@ elif selected == "Meeting Analysis":
 
     # Auto-refresh mechanism with loading indicator
     if meeting_id:
-        # Initialize auto-refresh state
         if "auto_refresh_enabled" not in st.session_state:
             st.session_state.auto_refresh_enabled = False
         if "last_fetch_time" not in st.session_state:
             st.session_state.last_fetch_time = 0
 
-        # Fetch data immediately if not in session or if manually triggered
         current_time = time.time()
         should_fetch = (
             st.session_state.meeting_data is None or
-            (current_time - st.session_state.last_fetch_time) > 10  # Auto-refresh every 10 seconds
+            (current_time - st.session_state.last_fetch_time) > 10  
         )
 
         if should_fetch:
@@ -150,10 +152,8 @@ elif selected == "Meeting Analysis":
                 st.warning("Meeting not found. Please check the Meeting ID.")
                 st.session_state.meeting_data = None
             elif "error" in data:
-                error_msg = data["error"]
-                # Check if it's a 409 Conflict (processing)
+                error_msg = data["error"])
                 if "409" in error_msg or "Conflict" in error_msg:
-                    # Show clean loading UI
                     st.markdown("### Processing Meeting")
                     st.markdown("---")
 
@@ -211,6 +211,7 @@ elif selected == "Meeting Analysis":
             **File:** `{meta.get("filename", "-")}`
             **Duration:** `{meta.get("duration", 0):.1f}s`
             **Status:** `{status}`
+            **Model:** `{meta.get("model_name", "Unknown")}`
             """
         )
 
@@ -280,7 +281,7 @@ elif selected == "Meeting Analysis":
                 # Fallback to plain text
                 st.text_area("Full Transcript", transcript_text, height=500)
 
-# AI CHAT PAGE (RAG)
+# AI Chat Page (RAG)
 elif selected == "AI Chat":
     st.title("Chat with Your Meeting")
 
