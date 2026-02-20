@@ -24,7 +24,7 @@ and enable structured meeting analysis.
 ### Meeting Analysis
 ![Summary](images/summary_result.png)
 ![Action Items](images/action_items.png)
-![Keywords](images/topics&keywords.png)
+![Keywords](images/topic&keywords.png)
 ![Transcription](images/transcription.png)
 
 ### Speaker Diarization Output
