@@ -19,11 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Add status column to meetings table
-    # We use server_default to ensure existing rows get a value
     op.add_column('meetings', sa.Column('status', sa.String(), server_default='UPLOADED', nullable=True))
-    
-    # Optional: Update existing nulls if any (redundant with server_default but safe)
     op.execute("UPDATE meetings SET status = 'UPLOADED' WHERE status IS NULL")
 
 
