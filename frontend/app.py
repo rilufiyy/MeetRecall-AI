@@ -152,7 +152,7 @@ elif selected == "Meeting Analysis":
                 st.warning("Meeting not found. Please check the Meeting ID.")
                 st.session_state.meeting_data = None
             elif "error" in data:
-                error_msg = data["error"])
+                error_msg = data["error"]
                 if "409" in error_msg or "Conflict" in error_msg:
                     st.markdown("### Processing Meeting")
                     st.markdown("---")
