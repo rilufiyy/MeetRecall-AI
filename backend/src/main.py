@@ -6,7 +6,7 @@ from src.core.database import engine, Base
 from src.api.routes import api_router
 from src.utils.wait_for_db import wait_for_db
 
-import src.models  # noqa: F401
+import src.models  
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -25,10 +25,8 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    # Tunggu DB siap
     wait_for_db()
 
-    # Create tables (idempotent)
     # Create tables (idempotent)
     from sqlalchemy import text
     try:
